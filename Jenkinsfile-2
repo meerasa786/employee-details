@@ -1,36 +1,41 @@
+
 pipeline {
     agent any
 
     stages {
 
-        stage('Build the code') {
+        stage('Checkout Code') {
             steps {
                 git 'https://github.com/meerasa786/employee-details.git'
             }
         }
 
-        stage('compile the code') {
+        stage('Compile') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn clean compile'
             }
         }
 
-        stage('test the code') {
+        stage('Test') {
             steps {
                 sh 'mvn test'
             }
         }
 
-        stage('package the code') {
+        stage('Package') {
             steps {
                 sh 'mvn package'
             }
         }
-        stage('deploy the code') {
+
+        stage('Deploy to Tomcat') {
             steps {
-                deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'tomcat', path: '', url: 'http://3.237.45.221:8080/')], contextPath: 'http://3.237.45.221:8080/', war: '**/*.war'
+                sh '''
+                curl -v -u tomcat:password \
+                -T target/*.war \
+                "http://3.237.45.221:8080/manager/text/deploy?path=/employee&update=true"
+                '''
             }
         }
-
     }
 }
